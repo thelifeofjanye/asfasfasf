@@ -93,12 +93,15 @@ router.route('/create').get(async (req, res) => {
 		oAuth2Client.setCredentials({ refresh_token })
 		res.cookie('refresh_token', refresh_token, { httpOnly: true })
 		// try {
-		oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' }).then((err, res) => {
-			if (err) {
-				res.send(err)
-			}
-			res.send(res)
-		})
+		oAuth2Client
+			.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
+			.then(res => {
+				res.send(res)
+			})
+			.catch(err => {
+				console.log(err)
+				res.send('ERROR FETCHING USERINFO')
+			})
 		// res.send(userinfo_res)
 		// } catch (error) {
 		// 	res.send({ send: 'ERROR userinfo', error })
