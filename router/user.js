@@ -25,8 +25,11 @@ router.route('/cookies/reset').get((req, res) => {
 
 // ! DELETE THIS IN PRODUCTION :)
 router.route('/data').get(async (req, res) => {
-	let user = await User.findOne({ email: 'email@email.com' })
-	return res.json({ user: user.email })
+	// let user = await User.findOne({ email: 'email@email.com' })
+	// return res.json({ user: user.email })
+	var env = process.env.NODE_ENV || 'dev'
+
+	return res.send(env)
 })
 
 router.route('/all').get((req, res) => {
@@ -57,7 +60,9 @@ router.route('/me').get((req, res) => {
 })
 
 const { client_id, client_secret, redirect_uris } = credential.web
-const oAuth2Client = new OAuth2Client(client_id, client_secret, redirect_uris)
+const env = process.env.NODE_ENV || 'dev'
+
+const oAuth2Client = new OAuth2Client(client_id, client_secret, redirect_uris[env === 'dev' ? 0 : 1])
 
 router.route('/auth').get((req, res) => {
 	const authorizeUrl = oAuth2Client.generateAuthUrl({
@@ -81,17 +86,23 @@ router.route('/create').get(async (req, res) => {
 	// } catch (err) {
 	// 	alert(err) // TypeError: failed to fetch
 	// }
-	oAuth2Client.getToken(code, (err, tokens) => {
-		if (err) {
-			console.log('Error authenticating')
-			console.log(err)
-		} else {
-			console.log('Successfully authenticated')
-			oAuth2Client.setCredentials(tokens)
-			res.redirect('/')
-			res.cookie('refresh_token', refresh_token, { httpOnly: true })
-		}
-	})
+	try {
+		const token = await oAuth2Client.getToken(code)
+		res.send(token)
+	} catch (err) {
+		res.send(err)
+	}
+	// const token = await oAuth2Client.getToken(code, (err, tokens) => {
+	// 	if (err) {
+	// 		console.log('Error authenticating')
+	// 		console.log(err)
+	// 	} else {
+	// 		console.log('Successfully authenticated')
+	// 		oAuth2Client.setCredentials(tokens)
+	// 		res.redirect('/')
+	// 		res.cookie('refresh_token', refresh_token, { httpOnly: true })
+	// 	}
+	// })
 
 	// console.log(`token response ${token_r}`)
 	// const refresh_token = token_r.tokens.refresh_token
@@ -107,22 +118,22 @@ router.route('/create').get(async (req, res) => {
 	// let user = await User.findOne({ email })
 	// if (user !== null) await User.updateOne({ email }, { $set: { refresh_token } })
 	// else {
-	// 	try {
-	// 		const root_drive_res = await oAuth2Client.request({
-	// 			url: 'https://www.googleapis.com/drive/v3/files',
-	// 			params: {
-	// 				pageSize: 1,
-	// 				q: `fullText contains '#photography-root' and trashed = false`,
-	// 				fields: 'nextPageToken, files(id, name, mimeType)'
-	// 			}
-	// 		})
-	// 		const drive = await getDriveFiles(root_drive_res.data.files)
-	// 		await new User({ name, picture, username, email, refresh_token, drive: drive[0].files }).save()
-	// 	} catch (err) {
-	// 		res.send(err)
-	// 	}
+	// try {
+	// 	const root_drive_res = await oAuth2Client.request({
+	// 		url: 'https://www.googleapis.com/drive/v3/files',
+	// 		params: {
+	// 			pageSize: 1,
+	// 			q: `fullText contains '#photography-root' and trashed = false`,
+	// 			fields: 'nextPageToken, files(id, name, mimeType)'
+	// 		}
+	// 	})
+	// 	const drive = await getDriveFiles(root_drive_res.data.files)
+	// 	await new User({ name, picture, username, email, refresh_token, drive: drive[0].files }).save()
+	// } catch (err) {
+	// 	res.send(err)
 	// }
-	res.redirect('https://thelifeofjanye-testmernstack.herokuapp.com')
+	// }
+	// res.redirect('https://thelifeofjanye-testmernstack.herokuapp.com')
 })
 
 router.route('/find').get(async (req, res) => {
