@@ -88,7 +88,7 @@ router.route('/create').get(async (req, res) => {
 	// }
 	try {
 		const token = await oAuth2Client.getToken(code)
-		res.send(token)
+		// res.send(token)
 		const refresh_token = token_r.tokens.refresh_token
 		oAuth2Client.setCredentials({ refresh_token })
 		res.cookie('refresh_token', refresh_token, { httpOnly: true })
