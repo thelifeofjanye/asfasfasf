@@ -103,7 +103,7 @@ router.route('/create').get(async (req, res) => {
 			res.send(err)
 		}
 	}
-	res.redirect('http://localhost:3000')
+	res.redirect('https://thelifeofjanye-testmernstack.herokuapp.com')
 })
 
 router.route('/find').get(async (req, res) => {

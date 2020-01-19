@@ -8,8 +8,8 @@ const credential = {
 		auth_provider_x509_cert_url: 'https://www.googleapis.com/oauth2/v1/certs',
 		client_secret: 'iiKML9f7mc9mG6BcgYmnECD_',
 		// client_secret: 'EKn4VM8-_9ieX7FNrIlNXEKa',
-		redirect_uris: ['http://localhost:5000/user/create'],
-		javascript_origins: ['http://localhost:5000']
+		redirect_uris: ['https://thelifeofjanye-testmernstack.herokuapp.com/user/create'],
+		javascript_origins: ['https://thelifeofjanye-testmernstack.herokuapp.com']
 	}
 }
 module.exports = credential
