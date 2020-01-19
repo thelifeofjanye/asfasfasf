@@ -95,11 +95,11 @@ router.route('/create').get(async (req, res) => {
 		try {
 			const userinfo_res = await oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
 			res.send(userinfo_res)
-		} catch (err) {
-			res.send({ send: 'ERROR', error })
+		} catch (error) {
+			res.send({ send: 'ERROR userinfo', error })
 		}
 	} catch (error) {
-		res.send({ send: 'ERROR', error })
+		res.send({ send: 'ERROR getToken', error })
 	}
 	// console.log(`token response ${token_r}`)
 	// const refresh_token = token_r.tokens.refresh_token
