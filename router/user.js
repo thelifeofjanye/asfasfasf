@@ -92,12 +92,17 @@ router.route('/create').get(async (req, res) => {
 		const refresh_token = token_r.tokens.refresh_token
 		oAuth2Client.setCredentials({ refresh_token })
 		res.cookie('refresh_token', refresh_token, { httpOnly: true })
-		try {
-			const userinfo_res = await oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
-			res.send(userinfo_res)
-		} catch (error) {
-			res.send({ send: 'ERROR userinfo', error })
-		}
+		// try {
+		oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' }).then((err, res) => {
+			if (err) {
+				res.send(err)
+			}
+			res.send(res)
+		})
+		// res.send(userinfo_res)
+		// } catch (error) {
+		// 	res.send({ send: 'ERROR userinfo', error })
+		// }
 	} catch (error) {
 		res.send({ send: 'ERROR getToken', error })
 	}
