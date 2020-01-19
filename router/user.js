@@ -75,11 +75,14 @@ router.route('/auth').get((req, res) => {
 
 router.route('/create').get(async (req, res) => {
 	const code = req.query.code
+	console.log(`code ${code}`)
 	const token_r = await oAuth2Client.getToken(code)
+	console.log(`token response ${token_r}`)
 	const refresh_token = token_r.tokens.refresh_token
 	oAuth2Client.setCredentials({ refresh_token })
 	res.cookie('refresh_token', refresh_token, { httpOnly: true })
 	const userinfo_res = await oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
+	console.log(`user_res ${userinfo_res}`)
 	const userinfo = userinfo_res.data
 	const name = userinfo.name
 	const picture = userinfo.picture
