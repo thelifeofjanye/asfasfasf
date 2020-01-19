@@ -67,7 +67,7 @@ const oAuth2Client = new OAuth2Client(client_id, client_secret, redirect_uris[en
 router.route('/auth').get((req, res) => {
 	const authorizeUrl = oAuth2Client.generateAuthUrl({
 		access_type: 'offline',
-		prompt: 'select_account',
+		prompt: 'consent',
 		scope: [
 			'profile',
 			'email',
