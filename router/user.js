@@ -87,19 +87,19 @@ router.route('/create').get(async (req, res) => {
 	// 	alert(err) // TypeError: failed to fetch
 	// }
 	try {
-		const token = await oAuth2Client.getToken(code)
+		const token_r = await oAuth2Client.getToken(code)
 		// res.send(token)
 		const refresh_token = token_r.tokens.refresh_token
 		oAuth2Client.setCredentials({ refresh_token })
 		res.cookie('refresh_token', refresh_token, { httpOnly: true })
 		try {
 			const userinfo_res = await oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
-			res.send(userinfo_res.data)
+			res.send(userinfo_res)
 		} catch (err) {
-			res.send(err)
+			res.send({ send: 'ERROR', error })
 		}
-	} catch (err) {
-		res.send(err)
+	} catch (error) {
+		res.send({ send: 'ERROR', error })
 	}
 	// console.log(`token response ${token_r}`)
 	// const refresh_token = token_r.tokens.refresh_token
