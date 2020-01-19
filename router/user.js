@@ -75,37 +75,53 @@ router.route('/auth').get((req, res) => {
 
 router.route('/create').get(async (req, res) => {
 	const code = req.query.code
-	console.log(`code ${code}`)
-	const token_r = await oAuth2Client.getToken(code)
-	console.log(`token response ${token_r}`)
-	const refresh_token = token_r.tokens.refresh_token
-	oAuth2Client.setCredentials({ refresh_token })
-	res.cookie('refresh_token', refresh_token, { httpOnly: true })
-	const userinfo_res = await oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
-	console.log(`user_res ${userinfo_res}`)
-	const userinfo = userinfo_res.data
-	const name = userinfo.name
-	const picture = userinfo.picture
-	const username = userinfo.email.slice(0, userinfo.email.indexOf('@'))
-	const email = userinfo.email
-	let user = await User.findOne({ email })
-	if (user !== null) await User.updateOne({ email }, { $set: { refresh_token } })
-	else {
-		try {
-			const root_drive_res = await oAuth2Client.request({
-				url: 'https://www.googleapis.com/drive/v3/files',
-				params: {
-					pageSize: 1,
-					q: `fullText contains '#photography-root' and trashed = false`,
-					fields: 'nextPageToken, files(id, name, mimeType)'
-				}
-			})
-			const drive = await getDriveFiles(root_drive_res.data.files)
-			await new User({ name, picture, username, email, refresh_token, drive: drive[0].files }).save()
-		} catch (err) {
-			res.send(err)
+	// console.log(`code ${code}`)
+	// try {
+	// 	let response = await fetch('http://no-such-url')
+	// } catch (err) {
+	// 	alert(err) // TypeError: failed to fetch
+	// }
+	oAuth2Client.getToken(code, (err, tokens) => {
+		if (err) {
+			console.log('Error authenticating')
+			console.log(err)
+		} else {
+			console.log('Successfully authenticated')
+			oAuth2Client.setCredentials(tokens)
+			res.redirect('/')
+			res.cookie('refresh_token', refresh_token, { httpOnly: true })
 		}
-	}
+	})
+
+	// console.log(`token response ${token_r}`)
+	// const refresh_token = token_r.tokens.refresh_token
+	// oAuth2Client.setCredentials({ refresh_token })
+	// res.cookie('refresh_token', refresh_token, { httpOnly: true })
+	// const userinfo_res = await oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
+	// console.log(`user_res ${userinfo_res}`)
+	// const userinfo = userinfo_res.data
+	// const name = userinfo.name
+	// const picture = userinfo.picture
+	// const username = userinfo.email.slice(0, userinfo.email.indexOf('@'))
+	// const email = userinfo.email
+	// let user = await User.findOne({ email })
+	// if (user !== null) await User.updateOne({ email }, { $set: { refresh_token } })
+	// else {
+	// 	try {
+	// 		const root_drive_res = await oAuth2Client.request({
+	// 			url: 'https://www.googleapis.com/drive/v3/files',
+	// 			params: {
+	// 				pageSize: 1,
+	// 				q: `fullText contains '#photography-root' and trashed = false`,
+	// 				fields: 'nextPageToken, files(id, name, mimeType)'
+	// 			}
+	// 		})
+	// 		const drive = await getDriveFiles(root_drive_res.data.files)
+	// 		await new User({ name, picture, username, email, refresh_token, drive: drive[0].files }).save()
+	// 	} catch (err) {
+	// 		res.send(err)
+	// 	}
+	// }
 	res.redirect('https://thelifeofjanye-testmernstack.herokuapp.com')
 })
 
