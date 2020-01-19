@@ -2,7 +2,6 @@ const router = require('express').Router()
 const User = require('../models/user.model')
 const { OAuth2Client } = require('google-auth-library')
 const credential = require('../credentials')
-const google = require('googleapis')
 
 router.route('/name').get(async (req, res) => {
 	const user = await User.findOne()
