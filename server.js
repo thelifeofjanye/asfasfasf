@@ -5,7 +5,7 @@ const cookies = require('cookie-parser')
 require('dotenv').config()
 
 const app = express()
-const port = process.env.port || 5000
+const port = process.env.port || 8080
 
 app.use(express.json())
 app.use(cookies())
