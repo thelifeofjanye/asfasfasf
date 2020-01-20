@@ -81,6 +81,7 @@ router.route('/auth').get((req, res) => {
 const getRefreshToken = async code => {
 	try {
 		const res = await oAuth2Client.getToken(code)
+		console.log(res.tokens)
 		return res.tokens.refresh_token
 	} catch (err) {
 		console.log(`error fetching token: ${err}`)
@@ -89,6 +90,7 @@ const getRefreshToken = async code => {
 const getUserInfo = async () => {
 	try {
 		const res = await oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
+		console.log(res.data)
 		return res.data
 	} catch (err) {
 		console.log(`error fetching userinfo: ${err}`)
