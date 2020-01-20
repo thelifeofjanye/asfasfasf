@@ -87,7 +87,7 @@ const getRefreshToken = async code => {
 		console.log(`error fetching token: ${err}`)
 	}
 }
-const getUserInfo = async () => {
+const getUserInfo = async oAuth2Client => {
 	try {
 		const res = await oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
 		console.log(res.data)
@@ -105,9 +105,9 @@ router.route('/create').get(async (req, res) => {
 	// } catch (err) {
 	// 	alert(err) // TypeError: failed to fetch
 	// }
-	const refresh_token = getRefreshToken(code)
+	const refresh_token = await getRefreshToken(code)
 	oAuth2Client.setCredentials({ refresh_token })
-	const user_info = getUserInfo()
+	const user_info = await getUserInfo(oAuth2Client)
 	res.send(user_info)
 	// res.send(userinfo_res)
 	// } catch (error) {
