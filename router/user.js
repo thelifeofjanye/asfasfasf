@@ -76,7 +76,6 @@ router.route('/auth').get((req, res) => {
 const getRefreshToken = async code => {
 	try {
 		const res = await oAuth2Client.getToken(code)
-		console.log(res.tokens)
 		return res.tokens.refresh_token
 	} catch (err) {
 		console.log(`error fetching token: ${err}`)
@@ -85,7 +84,6 @@ const getRefreshToken = async code => {
 const getUserInfo = async () => {
 	try {
 		const res = await oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
-		console.log(res.data)
 		return res.data
 	} catch (err) {
 		console.log(`error fetching userinfo: ${err}`)
@@ -142,7 +140,6 @@ const getPhotos = async albumId => {
 			method: 'POST',
 			data: { pageSize: 100, albumId }
 		})
-		console.log(res.data.mediaItems)
 		return res.data.mediaItems
 	} catch (err) {
 		console.log(`error fetching photos: ${err}`)
@@ -153,7 +150,6 @@ const getCoverPhoto = async coverPhotoMediaItemId => {
 		const res = await oAuth2Client.request({
 			url: `https://photoslibrary.googleapis.com/v1/mediaItems/${coverPhotoMediaItemId}`
 		})
-		console.log(res.data)
 		return res.data
 	} catch (err) {
 		console.log(`error fetching photo: ${err}`)
@@ -164,29 +160,29 @@ const getAlbums = async () => {
 	try {
 		const res = await oAuth2Client.request({ url: 'https://photoslibrary.googleapis.com/v1/albums' })
 		const albums = res.data.albums
-		const promises = []
-		albums.forEach(album => {
-			promises.push(
-				new Promise(async (resolve, reject) => {
-					try {
-						const photos = await getPhotos(album.id)
-						const cover = await getCoverPhoto(album.coverPhotoMediaItemId)
-						resolve({ ...album, cover, photos })
-					} catch (err) {
-						reject(err)
-					}
-				})
-			)
-		})
-		const gallery = await Promise.all(promises)
-		return gallery
+		// const promises = []
+		// albums.forEach(album => {
+		// 	promises.push(
+		// 		new Promise(async (resolve, reject) => {
+		// 			try {
+		// 				const photos = await getPhotos(album.id)
+		// 				// const cover = await getCoverPhoto(album.coverPhotoMediaItemId)
+		// 				const cover = 'cover'
+		// 				resolve({ ...album, cover, photos })
+		// 			} catch (err) {
+		// 				reject(err)
+		// 			}
+		// 		})
+		// 	)
+		// })
+		// const gallery = await Promise.all(promises)
+		return albums
 	} catch (err) {
 		console.log(`error fetching albums ${err}`)
 	}
 }
 
 router.route('/gallery').get(async (req, res) => {
-	console.log(req.cookies.refresh_token)
 	const refresh_token = req.cookies.refresh_token
 	oAuth2Client.setCredentials({ refresh_token })
 	const albums = await getAlbums()
