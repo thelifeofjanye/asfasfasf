@@ -68,12 +68,7 @@ router.route('/auth').get((req, res) => {
 	const authorizeUrl = oAuth2Client.generateAuthUrl({
 		access_type: 'offline',
 		prompt: 'consent',
-		scope: [
-			'profile',
-			'email',
-			'https://www.googleapis.com/auth/drive.metadata.readonly',
-			'https://www.googleapis.com/auth/drive'
-		]
+		scope: ['profile', 'email', 'https://www.googleapis.com/auth/photoslibrary.readonly']
 	})
 	res.redirect(authorizeUrl)
 })
