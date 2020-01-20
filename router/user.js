@@ -147,11 +147,12 @@ const getAlbums = async () => {
 		console.log(albums)
 		return albums
 	} catch (err) {
-		console.log(`error fetching albums`)
+		console.log(`error fetching albums ${err}`)
 	}
 }
 
 router.route('/gallery').get(async (req, res) => {
+	console.log(req.cookies.refresh_token)
 	const refresh_token = req.cookies.refresh_token
 	oAuth2Client.setCredentials({ refresh_token })
 	const albums = await getAlbums()
