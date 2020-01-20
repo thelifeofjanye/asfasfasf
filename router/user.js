@@ -78,6 +78,23 @@ router.route('/auth').get((req, res) => {
 	res.redirect(authorizeUrl)
 })
 
+const getRefreshToken = async code => {
+	try {
+		const res = await oAuth2Client.getToken(code)
+		return res.tokens.refresh_token
+	} catch (err) {
+		console.log(`error fetching token: ${err}`)
+	}
+}
+const getUserInfo = async () => {
+	try {
+		const res = await oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
+		return res.data
+	} catch (err) {
+		console.log(`error fetching userinfo: ${err}`)
+	}
+}
+
 router.route('/create').get(async (req, res) => {
 	const code = req.query.code
 	// console.log(`code ${code}`)
@@ -86,29 +103,14 @@ router.route('/create').get(async (req, res) => {
 	// } catch (err) {
 	// 	alert(err) // TypeError: failed to fetch
 	// }
-	try {
-		const token_r = await oAuth2Client.getToken(code)
-		res.send(token_r)
-		const refresh_token = token_r.tokens.refresh_token
-		oAuth2Client.setCredentials({ refresh_token })
-		res.cookie('refresh_token', refresh_token, { httpOnly: true })
-		// try {
-		oAuth2Client
-			.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
-			.then(res => {
-				res.send(res)
-			})
-			.catch(err => {
-				console.log(err)
-				res.send('ERROR FETCHING USERINFO')
-			})
-		// res.send(userinfo_res)
-		// } catch (error) {
-		// 	res.send({ send: 'ERROR userinfo', error })
-		// }
-	} catch (error) {
-		res.send({ send: 'ERROR getToken', error })
-	}
+	const refresh_token = getRefreshToken(code)
+	oAuth2Client.setCredentials({ refresh_token })
+	const user_info = getUserInfo()
+	res.send(user_info)
+	// res.send(userinfo_res)
+	// } catch (error) {
+	// 	res.send({ send: 'ERROR userinfo', error })
+	// }
 	// console.log(`token response ${token_r}`)
 	// const refresh_token = token_r.tokens.refresh_token
 	// oAuth2Client.setCredentials({ refresh_token })
