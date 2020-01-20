@@ -87,7 +87,7 @@ const getRefreshToken = async code => {
 		console.log(`error fetching token: ${err}`)
 	}
 }
-const getUserInfo = async oAuth2Client => {
+const getUserInfo = async () => {
 	try {
 		const res = await oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
 		console.log(res.data)
@@ -99,15 +99,10 @@ const getUserInfo = async oAuth2Client => {
 
 router.route('/create').get(async (req, res) => {
 	const code = req.query.code
-	// console.log(`code ${code}`)
-	// try {
-	// 	let response = await fetch('http://no-such-url')
-	// } catch (err) {
-	// 	alert(err) // TypeError: failed to fetch
-	// }
 	const refresh_token = await getRefreshToken(code)
 	oAuth2Client.setCredentials({ refresh_token })
-	const user_info = await getUserInfo(oAuth2Client)
+	const user_info = await getUserInfo()
+	res.cookie('refresh_token', refresh_token, { httpOnly: true })
 	res.send(user_info)
 	// res.send(userinfo_res)
 	// } catch (error) {
@@ -145,6 +140,24 @@ router.route('/create').get(async (req, res) => {
 	// res.redirect('https://thelifeofjanye-testmernstack.herokuapp.com')
 })
 
+const getAlbums = async () => {
+	try {
+		const res = await oAuth2Client.request({ url: 'https://photoslibrary.googleapis.com/v1/albums' })
+		const albums = res.data.albums
+		console.log(albums)
+		return albums
+	} catch (err) {
+		console.log(`error fetching albums`)
+	}
+}
+
+router.route('/gallery').get(async (req, res) => {
+	const refresh_token = req.cookies.refresh_token
+	oAuth2Client.setCredentials({ refresh_token })
+	const albums = await getAlbums()
+	res.send(albums)
+})
+
 router.route('/find').get(async (req, res) => {
 	res.setHeader('Access-Control-Allow-Origin', req.headers.origin || req.headers.host)
 	res.setHeader('Access-Control-Allow-Credentials', true)
@@ -162,47 +175,7 @@ router.route('/logout').get((req, res) => {
 
 //! total = 4 or something then ratio width height
 
-router.route('/test2').get(async (req, res) => {
-	const { client_id, client_secret, redirect_uris } = credential.web
-	const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0])
-	oAuth2Client.setCredentials({ refresh_token })
-	var drive = google.drive({
-		version: 'v2',
-		auth: oauth2Client
-	})
-	drive.files.get({ fileId: fileId, alt: 'media' }, { responseType: 'arraybuffer', encoding: null }, function(
-		err,
-		response
-	) {
-		if (err) {
-			console.log(err)
-		} else {
-			var imageType = response.headers['content-type']
-			var base64 = new Buffer(response.data, 'utf8').toString('base64')
-			var dataURI = 'data:' + imageType + ';base64,' + base64
-
-			res.send(dataURI)
-		}
-	})
-
-	// const refresh_token = req.cookies.refresh_token
-	// oAuth2Client.setCredentials({ refresh_token })
-	// const resss = await oAuth2Client.request({
-	// 	url: `https://www.googleapis.com/drive/v3/files/1BcIPa1hYxLFrUd7e02cO2Ct4rfZrDtpI`,
-	// 	params: {
-	// 		responseType: 'arraybuffer',
-	// 		encoding: null
-	// 	}
-	// })
-
-	// console.log(resss)
-
-	// const resssss = await oAuth2Client.request({
-	// 	url: `https://drive.google.com/uc?id=1BcIPa1hYxLFrUd7e02cO2Ct4rfZrDtpI&export=download`
-	// })
-
-	// res.send(resssss)
-})
+router.route('/test2').get(async (req, res) => {})
 
 router.route('/test').get(async (req, res) => {
 	res.setHeader('Access-Control-Allow-Origin', req.headers.origin || req.headers.host)
@@ -224,6 +197,7 @@ router.route('/test').get(async (req, res) => {
 		res.send(err)
 	}
 })
+
 const getDriveFiles = async files => {
 	const promises = []
 	files.forEach(file => {
