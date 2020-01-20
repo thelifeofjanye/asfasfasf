@@ -140,12 +140,51 @@ router.route('/create').get(async (req, res) => {
 	// res.redirect('https://thelifeofjanye-testmernstack.herokuapp.com')
 })
 
+const getPhotos = async albumId => {
+	try {
+		const res = await oAuth2Client.request({
+			url: 'https://photoslibrary.googleapis.com/v1/mediaItems:search?',
+			method: 'POST',
+			data: { pageSize: 100, albumId }
+		})
+		console.log(res.data.mediaItems)
+		return res.data.mediaItems
+	} catch (err) {
+		console.log(`error fetching photos: ${err}`)
+	}
+}
+const getCoverPhoto = async coverPhotoMediaItemId => {
+	try {
+		const res = await oAuth2Client.request({
+			url: `https://photoslibrary.googleapis.com/v1/mediaItems/${coverPhotoMediaItemId}`
+		})
+		console.log(res.data)
+		return res.data
+	} catch (err) {
+		console.log(`error fetching photo: ${err}`)
+	}
+}
+
 const getAlbums = async () => {
 	try {
 		const res = await oAuth2Client.request({ url: 'https://photoslibrary.googleapis.com/v1/albums' })
 		const albums = res.data.albums
-		console.log(albums)
-		return albums
+		const promises = []
+		albums.forEach(album => {
+			promises.push(
+				new Promise(async (resolve, reject) => {
+					try {
+						const photos = await getPhotos(album.id)
+						const cover = await getCoverPhoto(album.coverPhotoMediaItemId)
+						resolve({ ...album, cover, photos })
+					} catch (err) {
+						reject(err)
+					}
+				})
+			)
+		})
+		const gallery = await Promise.all(promises)
+		return gallery
 	} catch (err) {
 		console.log(`error fetching albums ${err}`)
 	}
