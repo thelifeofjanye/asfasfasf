@@ -1,30 +1,21 @@
-import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import React from 'react'
+import './App.css'
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
+import User from './components/User'
+import Gallery from './components/Gallery'
 
 function App() {
-	const [name, setName] = useState('...')
-
-	const fetchName = async () => {
-		const res = await axios.get('/user/name')
-		const name = res.data.name
-		setName(name)
-	}
-
-	useEffect(() => {
-		fetchName()
-	}, [])
-
-	const realname = async () => {
-		setName('...')
-		const res = await axios.post('/user/realname', { name: 'Jiraded' })
-		const name = res.data.name
-		setName(name)
-	}
-
 	return (
-		<div>
-			<span onClick={() => realname()}> Hello {name} </span>
-		</div>
+		<Router>
+			<Switch>
+				<Route exact path='/'>
+					<User />
+				</Route>
+				<Route path='/:username'>
+					<Gallery />
+				</Route>
+			</Switch>
+		</Router>
 	)
 }
 

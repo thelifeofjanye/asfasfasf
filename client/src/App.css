@@ -1,38 +1,211 @@
-.App {
-  text-align: center;
+#root {
+	height: 100vh;
+	background-color: #fff;
+	--photo-overlay-opacity: 0;
+	--sub-album-scale: scale(0.6);
+	--sub-album-opacity: 0;
+	--sub-album-padding: 0;
 }
-
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+* {
+	margin: 0;
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+img {
+	background-color: rebeccapurple;
+	min-width: 100%;
+	max-width: 100%;
 }
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.container {
+	overflow: auto;
+	height: var(--container-height);
+	display: flex;
+	justify-content: center;
 }
-
-.App-link {
-  color: #61dafb;
+.container > div {
+	width: 100%;
+	width: calc(100vw - 100px);
 }
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.title {
+	cursor: default;
+	text-align: center;
+	margin: 50px 0;
+}
+.gallery {
+	background-color: pink;
+	overflow: hidden;
+}
+.album-wrapper {
+	display: flex;
+	justify-content: center;
+	margin-bottom: 20px;
+}
+.album {
+	margin-left: 18px;
+	cursor: pointer;
+	transition: all 200ms linear;
+}
+.album:after {
+	content: '';
+	width: 0;
+	height: 1px;
+	display: block;
+	transition: all 200ms linear;
+}
+.album:hover:after {
+	width: 100%;
+	background: palevioletred;
+}
+.sub-album.active {
+	color: palevioletred;
+	--sub-album-opacity: 1;
+	--sub-album-scale: scale(1);
+	--sub-album-padding: 4px;
+}
+.sub-album {
+	transform-origin: top left;
+	position: absolute;
+	min-width: fit-content;
+	padding: 4px;
+	z-index: 1;
+	transition: all 0.2s ease-out;
+	display: block;
+	opacity: var(--sub-album-opacity);
+	transform: var(--sub-album-scale);
+}
+.sub-album > div {
+	padding: var(--sub-album-padding);
+	color: #fff;
+	background: linear-gradient(to right, pink 50%, palevioletred 50%);
+	background-size: 200% 100%;
+	background-position: right bottom;
+	transition: background-position 0.5s ease-out;
+}
+.sub-album > div:hover {
+	color: #000;
+	background-position: left bottom;
+	background-color: pink;
+}
+.photos {
+	display: inline-flex;
+}
+.photos > .section:first-child {
+	margin-left: 0 !important;
+}
+.photo {
+	margin-bottom: 20px;
+	position: relative;
+	cursor: pointer;
+}
+.photo > div {
+	display: flex;
+}
+.modal {
+	display: var(--modal-display);
+	position: absolute;
+	z-index: 1;
+	top: 0;
+	left: 0;
+	background-color: rgba(0, 0, 0, 0.4);
+	width: 100%;
+	height: 100%;
+	justify-content: center;
+	align-items: center;
+}
+.modal-content {
+	padding: 20px;
+	background: #fafafa;
+	display: grid;
+}
+.modal-content > img {
+	max-width: calc(100vw - 100px);
+	/* width: auto; */
+	/* ! if landscape height: auto; */
+	/* ! if protrait width: auto; */
+	max-height: calc(100vh - 100px);
+}
+.section {
+	margin-left: 20px;
+	max-width: var(--section-width);
+}
+.section > .photo:last-child {
+	margin-bottom: 0;
+}
+.photo:hover {
+	--photo-overlay-opacity: 1;
+}
+.photo-overlay {
+	opacity: var(--photo-overlay-opacity);
+	position: absolute;
+	background-color: #01010140;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	transition: opacity 100ms linear;
+}
+.album-title {
+	opacity: var(--photo-overlay-opacity);
+	position: absolute;
+	display: flex;
+	background-color: #fafafacc;
+	margin: 25px;
+	bottom: 0;
+	left: 0;
+	font-size: xx-large;
+	width: calc(100% - 50px);
+	height: calc(100% - 50px);
+	justify-content: center;
+	align-items: center;
+	transition: opacity 100ms linear;
+}
+.google-auth {
+	box-sizing: border-box;
+	position: relative;
+	margin: 0.2em;
+	padding: 0 15px 0 46px;
+	border: none;
+	text-align: left;
+	line-height: 34px;
+	white-space: nowrap;
+	border-radius: 0.2em;
+	font-size: 16px;
+	color: #fff;
+	font-family: 'Roboto', Roboto, arial, sans-serif;
+	background: #dd4b39;
+}
+.google-auth:before {
+	content: '';
+	box-sizing: border-box;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 34px;
+	height: 100%;
+	border-right: #bb3f30 1px solid;
+	background: url('https://s3-us-west-2.amazonaws.com/s.cdpn.io/14082/icon_google.png') 6px 6px no-repeat;
+}
+.google-auth:active {
+	box-shadow: inset 0 0 0 32px rgba(0, 0, 0, 0.1);
+}
+.google-auth:hover,
+.google-auth:focus {
+	background: #e74b37;
+	cursor: pointer;
+}
+.login {
+	display: flex;
+	height: 50%;
+	justify-content: center;
+	align-items: flex-start;
+}
+.login > div {
+	text-align: center;
+}
+.about {
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	height: 50%;
+}
+.about > div {
+	text-align: center;
 }
