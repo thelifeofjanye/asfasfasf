@@ -1,6 +1,8 @@
 import React, { useContext, useState } from 'react'
 import { GalleryContext } from './Gallery'
 
+//try styled component
+
 const Album = ({ album }) => {
 	const { setPhotos, setPhotoSyncly } = useContext(GalleryContext)
 	const [active, setActive] = useState(false)
