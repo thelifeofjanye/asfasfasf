@@ -3,65 +3,8 @@ const User = require('../models/user.model')
 const { OAuth2Client } = require('google-auth-library')
 const credential = require('../credentials')
 
-router.route('/name').get(async (req, res) => {
-	const user = await User.findOne()
-	res.send({ name: user.name })
-})
-
-router.post('/realname', async (req, res) => {
-	res.send({ name: req.body.name })
-})
-
-// ! DELETE THIS IN PRODUCTION :)
-router.route('/cookies').get((req, res) => {
-	res.json(req.cookies)
-})
-
-// ! DELETE THIS IN PRODUCTION :)
-router.route('/cookies/reset').get((req, res) => {
-	res.clearCookie('refresh_token')
-	res.json(req.cookies)
-})
-
-// ! DELETE THIS IN PRODUCTION :)
-router.route('/data').get(async (req, res) => {
-	// let user = await User.findOne({ email: 'email@email.com' })
-	// return res.json({ user: user.email })
-	var env = process.env.NODE_ENV || 'dev'
-
-	return res.send(env)
-})
-
-router.route('/all').get((req, res) => {
-	res.setHeader('Access-Control-Allow-Origin', req.headers.origin || req.headers.host)
-	User.find()
-		.then(users => res.json(users))
-		.catch(err => res.status(400).json('*-*'))
-})
-
-router.route('/one').get(async (req, res) => {
-	res.setHeader('Access-Control-Allow-Origin', req.headers.origin || req.headers.host)
-	const username = req.body.username
-	const user = await User.findOne({ username })
-	res.json(user)
-})
-
-router.route('/me').get((req, res) => {
-	res.setHeader('Access-Control-Allow-Origin', req.headers.origin || req.headers.host)
-	res.setHeader('Access-Control-Allow-Credentials', true)
-	if (req.cookies.refresh_token === undefined) {
-		res.send('404')
-	} else {
-		const refresh_token = req.cookies.refresh_token
-		User.findOne({ refresh_token })
-			.then(users => res.json(users === null ? 404 : users))
-			.catch(err => res.status(400).json(err))
-	}
-})
-
-const { client_id, client_secret, redirect_uris } = credential.web
 const env = process.env.NODE_ENV || 'dev'
-
+const { client_id, client_secret, redirect_uris, javascript_origins } = credential.web
 const oAuth2Client = new OAuth2Client(client_id, client_secret, redirect_uris[env === 'dev' ? 0 : 1])
 
 router.route('/auth').get((req, res) => {
@@ -73,10 +16,25 @@ router.route('/auth').get((req, res) => {
 	res.redirect(authorizeUrl)
 })
 
-const getRefreshToken = async code => {
+router.route('/me').get((req, res) => {
+	res.send('Jay')
+})
+
+router.route('/me').get((req, res) => {
+	if (req.cookies.refresh_token === undefined) {
+		res.json(404)
+	} else {
+		const refresh_token = req.cookies.refresh_token
+		User.findOne({ refresh_token })
+			.then(users => res.json(users === null ? 404 : users))
+			.catch(err => res.status(400).json(err))
+	}
+})
+
+const getTokens = async code => {
 	try {
 		const res = await oAuth2Client.getToken(code)
-		return res.tokens.refresh_token
+		return res.tokens
 	} catch (err) {
 		console.log(`error fetching token: ${err}`)
 	}
@@ -91,46 +49,40 @@ const getUserInfo = async () => {
 }
 
 router.route('/create').get(async (req, res) => {
-	const code = req.query.code
-	const refresh_token = await getRefreshToken(code)
-	oAuth2Client.setCredentials({ refresh_token })
-	const user_info = await getUserInfo()
-	res.cookie('refresh_token', refresh_token, { httpOnly: true })
-	res.send(user_info)
-	// res.send(userinfo_res)
-	// } catch (error) {
-	// 	res.send({ send: 'ERROR userinfo', error })
-	// }
-	// console.log(`token response ${token_r}`)
-	// const refresh_token = token_r.tokens.refresh_token
-	// oAuth2Client.setCredentials({ refresh_token })
-	// res.cookie('refresh_token', refresh_token, { httpOnly: true })
-	// const userinfo_res = await oAuth2Client.request({ url: 'https://www.googleapis.com/oauth2/v1/userinfo' })
-	// console.log(`user_res ${userinfo_res}`)
-	// const userinfo = userinfo_res.data
-	// const name = userinfo.name
-	// const picture = userinfo.picture
-	// const username = userinfo.email.slice(0, userinfo.email.indexOf('@'))
-	// const email = userinfo.email
-	// let user = await User.findOne({ email })
-	// if (user !== null) await User.updateOne({ email }, { $set: { refresh_token } })
-	// else {
-	// try {
-	// 	const root_drive_res = await oAuth2Client.request({
-	// 		url: 'https://www.googleapis.com/drive/v3/files',
-	// 		params: {
-	// 			pageSize: 1,
-	// 			q: `fullText contains '#photography-root' and trashed = false`,
-	// 			fields: 'nextPageToken, files(id, name, mimeType)'
-	// 		}
-	// 	})
-	// 	const drive = await getDriveFiles(root_drive_res.data.files)
-	// 	await new User({ name, picture, username, email, refresh_token, drive: drive[0].files }).save()
-	// } catch (err) {
-	// 	res.send(err)
-	// }
-	// }
-	// res.redirect('https://thelifeofjanye-testmernstack.herokuapp.com')
+	try {
+		const code = req.query.code
+		const tokens = await getTokens(code)
+		oAuth2Client.setCredentials(tokens)
+		const user_info = await getUserInfo()
+		const name = user_info.name
+		const picture = user_info.picture
+		const username = user_info.email.slice(0, user_info.email.indexOf('@'))
+		const email = user_info.email
+		let user = await User.findOne({ email })
+		if (user === null) {
+			try {
+				const refresh_token = tokens.refresh_token
+				res.cookie('refresh_token', refresh_token, { httpOnly: true })
+				await new User({ name, picture, username, email, refresh_token }).save()
+			} catch (err) {
+				console.log(`error save user ${err}`)
+			}
+		} else {
+			if (tokens.refresh_token !== undefined) {
+				try {
+					const refresh_token = tokens.refresh_token
+					res.cookie('refresh_token', refresh_token, { httpOnly: true })
+					await User.updateOne({ email }, { $set: { refresh_token } })
+				} catch (err) {
+					console.log(`error update user ${err}`)
+				}
+			}
+		}
+		res.send('success')
+	} catch (err) {
+		res.send(`create account failed: ${err}`)
+	}
+	// res.redirect(javascript_origins[env === 'dev' ? 0 : 1])
 })
 
 const getPhotos = async albumId => {
@@ -145,128 +97,92 @@ const getPhotos = async albumId => {
 		console.log(`error fetching photos: ${err}`)
 	}
 }
-const getCoverPhoto = async coverPhotoMediaItemId => {
-	try {
-		const res = await oAuth2Client.request({
-			url: `https://photoslibrary.googleapis.com/v1/mediaItems/${coverPhotoMediaItemId}`
-		})
-		return res.data
-	} catch (err) {
-		console.log(`error fetching photo: ${err}`)
-	}
-}
 
 const getAlbums = async () => {
 	try {
 		const res = await oAuth2Client.request({ url: 'https://photoslibrary.googleapis.com/v1/albums' })
-		const albums = res.data.albums
-		// const promises = []
-		// albums.forEach(album => {
-		// 	promises.push(
-		// 		new Promise(async (resolve, reject) => {
-		// 			try {
-		// 				const photos = await getPhotos(album.id)
-		// 				// const cover = await getCoverPhoto(album.coverPhotoMediaItemId)
-		// 				const cover = 'cover'
-		// 				resolve({ ...album, cover, photos })
-		// 			} catch (err) {
-		// 				reject(err)
-		// 			}
-		// 		})
-		// 	)
-		// })
-		// const gallery = await Promise.all(promises)
-		return albums
+		return res.data.albums
 	} catch (err) {
 		console.log(`error fetching albums ${err}`)
 	}
 }
 
-router.route('/gallery').get(async (req, res) => {
-	const refresh_token = req.cookies.refresh_token
+router.route('/photos').post(async (req, res) => {
+	const { username, albumId } = req.body
+	let refresh_token = req.cookies.refresh_token
+	if (username !== null) {
+		const user = await User.findOne({ username })
+		if (user === null) return res.send(`can't find such user`)
+		else refresh_token = user.refresh_token
+	}
+	if (refresh_token === undefined) return res.send('not logged in')
 	oAuth2Client.setCredentials({ refresh_token })
-	const albums = await getAlbums()
-	res.send(albums)
+	const photos = await getPhotos(albumId)
+	const allow_propoties = ['baseUrl', 'mediaMetadata', 'filename', 'description']
+	photos.map(photo => {
+		allowedPropoties(photo, allow_propoties)
+	})
+	res.send(photos)
 })
 
-router.route('/find').get(async (req, res) => {
-	res.setHeader('Access-Control-Allow-Origin', req.headers.origin || req.headers.host)
-	res.setHeader('Access-Control-Allow-Credentials', true)
-	const username = req.query.username
-	const user = await User.findOne({ username })
-	res.send(user === null ? '404' : user)
+router.route('/albums').post(async (req, res) => {
+	const { username } = req.body
+	let refresh_token = req.cookies.refresh_token
+	if (username !== null) {
+		const user = await User.findOne({ username })
+		if (user === null) return res.send(`can't find such user`)
+		else refresh_token = user.refresh_token
+	}
+	if (refresh_token === undefined) return res.send('not logged in')
+	oAuth2Client.setCredentials({ refresh_token })
+	const albums = await getAlbums()
+	const allow_propoties = ['id', 'title']
+	albums.map(album => {
+		return allowedPropoties(album, allow_propoties)
+	})
+	let gallery = []
+	albums.forEach(album => {
+		const { id, title } = album
+		const split_index = title.indexOf('/')
+		if (split_index === -1) {
+			gallery.push(album)
+		} else {
+			const album_title = title.slice(0, split_index)
+			const sub_album_title = title.slice(split_index + 1, title.length)
+			const exist_album = gallery.findIndex(album => album.title === album_title)
+			if (exist_album === -1) {
+				gallery = [...gallery, { title: album_title, subs: [{ id, title: sub_album_title }] }]
+			} else {
+				gallery[exist_album].subs.push({ id, title: sub_album_title })
+			}
+		}
+	})
+	return res.send(gallery)
+})
+
+const allowedPropoties = (object, allow_propoties) => {
+	Object.keys(object)
+		.filter(key => !allow_propoties.includes(key))
+		.forEach(key => delete object[key])
+}
+
+const getUser = async username => {
+	try {
+		return await User.findOne({ username: 'thelifeofjanye' })
+	} catch (err) {
+		console.log(`error getting data from database: ${err}`)
+	}
+}
+
+router.route('/find').post(async (req, res) => {
+	const { username } = req.body
+	const user = await getUser({ username })
+	res.send(user)
 })
 
 router.route('/logout').get((req, res) => {
-	res.setHeader('Access-Control-Allow-Origin', req.headers.origin || req.headers.host)
-	res.setHeader('Access-Control-Allow-Credentials', true)
 	res.clearCookie('refresh_token')
 	res.redirect('/user/me')
 })
-
-//! total = 4 or something then ratio width height
-
-router.route('/test2').get(async (req, res) => {})
-
-router.route('/test').get(async (req, res) => {
-	res.setHeader('Access-Control-Allow-Origin', req.headers.origin || req.headers.host)
-	res.setHeader('Access-Control-Allow-Credentials', true)
-	const refresh_token = req.cookies.refresh_token
-	oAuth2Client.setCredentials({ refresh_token })
-	try {
-		const root_drive_res = await oAuth2Client.request({
-			url: 'https://www.googleapis.com/drive/v3/files',
-			params: {
-				pageSize: 1,
-				q: `fullText contains '#photography-root' and trashed = false`,
-				fields: 'nextPageToken, files(id, name, mimeType)'
-			}
-		})
-		const drive = await getDriveFiles(root_drive_res.data.files)
-		res.send(drive[0].files)
-	} catch (err) {
-		res.send(err)
-	}
-})
-
-const getDriveFiles = async files => {
-	const promises = []
-	files.forEach(file => {
-		const promise = new Promise(async resolve => {
-			if (file.mimeType === 'application/vnd.google-apps.folder') {
-				const res = await oAuth2Client.request({
-					url: 'https://www.googleapis.com/drive/v3/files',
-					params: {
-						pageSize: 1000,
-						q: `'${file.id}' in parents and (mimeType = 'application/vnd.google-apps.folder' or mimeType contains 'image/') and trashed = false`,
-						fields:
-							'nextPageToken, files(id, name, mimeType, starred, description, imageMediaMetadata(width, height))'
-					}
-				})
-				let files = await getDriveFiles(res.data.files)
-				const starred = files.find(file => file.starred)
-				const cover = starred === undefined ? null : starred
-				files = files.filter(file => file.description !== 'cantc')
-				files = filterFiles(files)
-				const { id, imageMediaMetadata } = starred === undefined ? {} : starred
-				resolve({ ...file, id, imageMediaMetadata, files })
-			} else {
-				resolve(file)
-			}
-		})
-		promises.push(promise)
-	})
-	return await Promise.all(promises)
-}
-
-const filterFiles = files => {
-	const propoties = ['id', 'name', 'mimeType', 'description', 'cover', 'imageMediaMetadata', 'files']
-	return files.map(file => {
-		Object.keys(file)
-			.filter(key => !propoties.includes(key))
-			.forEach(key => delete file[key])
-		return file
-	})
-}
 
 module.exports = router

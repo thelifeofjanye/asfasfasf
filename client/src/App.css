@@ -9,98 +9,9 @@
 * {
 	margin: 0;
 }
-img {
-	background-color: rebeccapurple;
-	min-width: 100%;
-	max-width: 100%;
-}
-.container {
-	overflow: auto;
-	height: var(--container-height);
-	display: flex;
-	justify-content: center;
-}
-.container > div {
-	width: 100%;
-	width: calc(100vw - 100px);
-}
-.title {
-	cursor: default;
-	text-align: center;
-	margin: 50px 0;
-}
-.gallery {
-	background-color: pink;
-	overflow: hidden;
-}
-.album-wrapper {
-	display: flex;
-	justify-content: center;
-	margin-bottom: 20px;
-}
-.album {
-	margin-left: 18px;
-	cursor: pointer;
-	transition: all 200ms linear;
-}
-.album:after {
-	content: '';
-	width: 0;
-	height: 1px;
-	display: block;
-	transition: all 200ms linear;
-}
-.album:hover:after {
-	width: 100%;
-	background: palevioletred;
-}
-.sub-album.active {
-	color: palevioletred;
-	--sub-album-opacity: 1;
-	--sub-album-scale: scale(1);
-	--sub-album-padding: 4px;
-}
-.sub-album {
-	transform-origin: top left;
-	position: absolute;
-	min-width: fit-content;
-	padding: 4px;
-	z-index: 1;
-	transition: all 0.2s ease-out;
-	display: block;
-	opacity: var(--sub-album-opacity);
-	transform: var(--sub-album-scale);
-}
-.sub-album > div {
-	padding: var(--sub-album-padding);
-	color: #fff;
-	background: linear-gradient(to right, pink 50%, palevioletred 50%);
-	background-size: 200% 100%;
-	background-position: right bottom;
-	transition: background-position 0.5s ease-out;
-}
-.sub-album > div:hover {
-	color: #000;
-	background-position: left bottom;
-	background-color: pink;
-}
-.photos {
-	display: inline-flex;
-}
-.photos > .section:first-child {
-	margin-left: 0 !important;
-}
-.photo {
-	margin-bottom: 20px;
-	position: relative;
-	cursor: pointer;
-}
-.photo > div {
-	display: flex;
-}
 .modal {
 	display: var(--modal-display);
-	position: absolute;
+	position: fixed;
 	z-index: 1;
 	top: 0;
 	left: 0;
@@ -117,45 +28,7 @@ img {
 }
 .modal-content > img {
 	max-width: calc(100vw - 100px);
-	/* width: auto; */
-	/* ! if landscape height: auto; */
-	/* ! if protrait width: auto; */
 	max-height: calc(100vh - 100px);
-}
-.section {
-	margin-left: 20px;
-	max-width: var(--section-width);
-}
-.section > .photo:last-child {
-	margin-bottom: 0;
-}
-.photo:hover {
-	--photo-overlay-opacity: 1;
-}
-.photo-overlay {
-	opacity: var(--photo-overlay-opacity);
-	position: absolute;
-	background-color: #01010140;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	transition: opacity 100ms linear;
-}
-.album-title {
-	opacity: var(--photo-overlay-opacity);
-	position: absolute;
-	display: flex;
-	background-color: #fafafacc;
-	margin: 25px;
-	bottom: 0;
-	left: 0;
-	font-size: xx-large;
-	width: calc(100% - 50px);
-	height: calc(100% - 50px);
-	justify-content: center;
-	align-items: center;
-	transition: opacity 100ms linear;
 }
 .google-auth {
 	box-sizing: border-box;

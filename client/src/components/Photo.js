@@ -1,42 +1,61 @@
-import React, { useContext, useState } from 'react'
-import { GalleryContext } from './Gallery'
+import React from 'react'
+import styled from 'styled-components'
 
-const Photo = ({ photo }) => {
-	const { id, name, imageMediaMetadata, files } = photo
-	const { setPhotos, setDisplay, setPhotoSyncly } = useContext(GalleryContext)
-	const [loaded, setLoaded] = useState(false)
+const Photo = ({ photo, setDisplay }) => {
+	const { filename, baseUrl, mediaMetadata } = photo
+	const { width, height } = mediaMetadata
 
 	const handlePhotoClick = async () => {
-		if (files !== undefined) {
-			setPhotos(null)
-			setTimeout(() => {
-				setPhotoSyncly(files)
-				setPhotos(files)
-			}, 500)
-		} else {
-			setDisplay(photo)
-			document.documentElement.style.setProperty('--container-height', '100vh')
-			document.documentElement.style.setProperty('--modal-display', 'flex')
+		setDisplay(photo)
+		const scrollY = document.documentElement.style.getPropertyValue('--scroll-y')
+		const body = document.body
+		body.style.position = 'fixed'
+		body.style.top = `-${scrollY}`
+		document.documentElement.style.setProperty('--modal-display', 'flex')
+	}
+
+	const gallerySize = (width, height) => {
+		const size = parseInt(width) + parseInt(height)
+		if (size > 6000) {
+			return { width: Math.round(width / 3), height: Math.round(height / 3) }
+		} else if (size > 3600) return { width: Math.round(width / 2), height: Math.round(height / 2) }
+		else {
+			return { width, height }
 		}
 	}
 
-	const sectionWidth = document.documentElement.style.getPropertyValue('--section-width')
+	const PhotoCover = styled.div`
+		opacity: 0;
+		position: absolute;
+		background-color: #01010140;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		transition: opacity 100ms linear;
+		&:hover {
+			opacity: 1;
+		}
+	`
 
-	const height =
-		imageMediaMetadata.height /
-		(imageMediaMetadata.width / parseInt(sectionWidth.slice(0, sectionWidth.length - 2)))
+	const Image = styled.img`
+		opacity: 1;
+		background-color: rebeccapurple;
+		min-width: 100%;
+		max-width: 100%;
+		display: flex;
+		transition: all 300ms linear;
+	`
 
 	return (
-		<div onClick={handlePhotoClick}>
-			<img
-				src={`https://drive.google.com/uc?id=${id}`}
-				alt={name}
-				onLoad={() => setLoaded(true)}
-				width={imageMediaMetadata.width}
-				height={loaded ? 'auto' : height}
+		<div onClick={() => handlePhotoClick()}>
+			<Image
+				src={`${baseUrl}=w${gallerySize(width, height).width}-h${gallerySize(width, height).height}`}
+				alt={filename}
+				width={gallerySize(width, height).width}
+				height={'auto'}
 			/>
-			<div className='photo-overlay' />
-			{files !== undefined && <div className='album-title'>{name}</div>}
+			<PhotoCover />
 		</div>
 	)
 }

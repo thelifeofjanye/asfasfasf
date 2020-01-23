@@ -1,8 +1,10 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 
 const ModalContent = ({ photo }) => {
-	const { id, name, imageMediaMetadata } = photo
-	const { width, height } = imageMediaMetadata
+	if (photo === null) return null
+
+	const { baseUrl, filename, mediaMetadata } = photo
+	const { width, height } = mediaMetadata
 
 	const imageSize = (width, height) => {
 		if (height > width) {
@@ -15,11 +17,10 @@ const ModalContent = ({ photo }) => {
 			else return { width, height: 'auto' }
 		}
 	}
-
 	return (
 		<img
-			src={`https://drive.google.com/uc?id=${id}`}
-			alt={name}
+			src={`${baseUrl}=w${width}-h${mediaMetadata.height}`}
+			alt={filename}
 			width={imageSize(width, height).width}
 			height={imageSize(width, height).height}
 		/>

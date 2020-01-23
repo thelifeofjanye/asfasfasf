@@ -1,14 +1,11 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import styled from 'styled-components'
-import axios from 'axios'
+import Axios from 'axios'
 // import { useParams } from 'react-router-dom'
-import { GalleryContext } from './Gallery'
 
-const Album = ({ album }) => {
+const Album = ({ album, albums, setAlbums, setPhotos }) => {
 	// let { username } = useParams()
 	const { id, title, subs } = album
-
-	const { albums, setAlbums, setPhotos } = useContext(GalleryContext)
 
 	const SubAlbumWrapper = styled.div`
 		box-shadow: #00000045 2px 2px 6px;
@@ -62,10 +59,10 @@ const Album = ({ album }) => {
 	}
 
 	const albumClick = async (album, albumId) => {
-		setPhotos(null)
+		setPhotos([])
 		if (albumId !== undefined) {
 			if (album.photos === undefined) {
-				const res = await axios.post('/user/photos', { username: 'thelifeofjanye', albumId })
+				const res = await Axios.post('/user/photos', { username: 'thelifeofjanye', albumId })
 				const photos = res.data
 				const appendedAlbums = appendPhotos(albums, albumId, photos)
 				setAlbums(appendedAlbums)
